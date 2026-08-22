@@ -10,6 +10,8 @@ h1{margin:0 0 4px;font-size:26px}.sub{color:var(--muted);font-size:14px}
 .controls{display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:10px;margin-top:14px}
 input,select,button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
 button{cursor:pointer}button:hover{border-color:var(--accent)}
+button.active-view{border-color:var(--accent);background:#15253f;box-shadow:inset 0 0 0 1px rgba(125,211,252,.18)}
+.view-disabled{opacity:.55}
 .stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:13px}
 .badge{display:inline-block;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 8px;margin:2px;font-size:12px}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 500px;gap:16px;padding:18px;max-width:1650px;margin:auto}
@@ -17,8 +19,9 @@ button{cursor:pointer}button:hover{border-color:var(--accent)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:.15s}
 .card:hover{transform:translateY(-1px);border-color:var(--accent)}.card h3{margin:0 0 8px;font-size:17px}
 .model-result-card{border-left:4px solid #c4b5fd}.source-result-card{border-left:4px solid var(--accent2)}
-.model-result-card.is-read{border-color:#2f6f59;border-left-color:#86efac;background:#10231f}
-.model-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.model-result-card.is-read,.usecase-card.is-read{border-color:#2f6f59;border-left-color:#86efac;background:#10231f}
+.usecase-card{border-left:4px solid #60a5fa}
+.card-top-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .meta{color:var(--muted);font-size:12px;margin-bottom:9px}.problem{font-size:14px;line-height:1.45}
 .detail{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
 .detail h2{margin-top:0;font-size:22px}.detail h3{margin:20px 0 8px;font-size:15px;color:var(--accent2)}
@@ -47,10 +50,12 @@ button{cursor:pointer}button:hover{border-color:var(--accent)}
 .model-pipeline{border-left:4px solid #c4b5fd}
 .model-list{margin:8px 0;padding-left:22px;font-size:14px;line-height:1.55}.model-list li{margin:4px 0}
 .disclosed-list li::marker{color:#86efac}.undisclosed-list li::marker{color:#fca5a5}
-.model-read-control{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:#0b1425;color:var(--text);font-size:13px;cursor:pointer;user-select:none}
-.model-read-control:hover{border-color:#86efac}.model-read-control input{width:16px;height:16px;margin:0;accent-color:#86efac;cursor:pointer}
-.model-read-control.compact{padding:4px 7px;font-size:11px;white-space:nowrap}
-.model-detail-progress{display:flex;justify-content:flex-end;margin:8px 0 10px}
-.model-lab-stats{margin-top:14px}
+.read-control{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:#0b1425;color:var(--text);font-size:13px;cursor:pointer;user-select:none}
+.read-control:hover{border-color:#86efac}.read-control input{width:16px;height:16px;margin:0;accent-color:#86efac;cursor:pointer}
+.read-control.compact{padding:4px 7px;font-size:11px;white-space:nowrap}
+.detail-top-actions{display:flex;justify-content:flex-end;margin:2px 0 10px}
+.progress-summary{margin-top:14px}
+.inline-back{margin:0 0 12px;padding:7px 10px;font-size:12px;background:#0a0f1d}
+.inline-back:hover{border-color:var(--accent)}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.detail{position:relative;top:0;max-height:none}.controls{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.controls{grid-template-columns:1fr}.layout{padding:10px}.wrap{padding:12px}.model-title-row{display:block}.disclosure{display:inline-block;margin-bottom:8px}.model-card-top{display:block}.model-read-control.compact{margin-bottom:8px}}
+@media(max-width:620px){.controls{grid-template-columns:1fr}.layout{padding:10px}.wrap{padding:12px}.model-title-row{display:block}.disclosure{display:inline-block;margin-bottom:8px}.card-top-row{display:block}.read-control.compact{margin:0 0 8px}.detail-top-actions{justify-content:flex-start}}
