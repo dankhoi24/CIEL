@@ -2,6 +2,7 @@ const cases = (window.AI_CASES_PARTS || []).flat();
 const glossary = window.AI_GLOSSARY || {};
 const sources = window.AI_SOURCES || [];
 const sourceLevels = window.AI_SOURCE_LEVELS || {};
+const models = window.AI_MODELS || [];
 const $ = s => document.querySelector(s);
 
 function addOptions(sel, values) {
@@ -12,11 +13,13 @@ addOptions($('#task'), [...new Set(cases.map(x=>x.task))].sort());
 addOptions($('#learning'), [...new Set(cases.map(x=>x.learning))].sort());
 
 let interviewOnly=false;
-const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const badges=arr=>arr.map(x=>`<span class="badge">${esc(x)}</span>`).join('');
+const esc=s=>String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const badges=arr=>(arr||[]).map(x=>`<span class="badge">${esc(x)}</span>`).join('');
+const asText=x=>JSON.stringify(x).toLowerCase();
+function caseText(x){ return asText(x); }
+function sourceText(s){ return asText(s); }
+function modelText(m){ return asText(m); }
 
-function caseText(x){ return JSON.stringify(x).toLowerCase(); }
-function sourceText(s){ return JSON.stringify(s).toLowerCase(); }
 function sourceScore(src,x){
   const hay=caseText(x); let score=0;
   (src.tags||[]).forEach(t=>{ if(hay.includes(String(t).toLowerCase())) score+=3; });
@@ -48,23 +51,30 @@ function sourceResultCard(s){
     <div style="margin-top:8px">${badges((s.tags||[]).slice(0,4))}</div>
   </article>`;
 }
+function modelResultCard(m){
+  return `<article class="card model-result-card" data-model-id="${esc(m.id)}">
+    <div class="meta">MODEL TRAINING LAB · ${esc(m.year)} · Disclosure ${esc(m.disclosure)}</div>
+    <h3>${esc(m.name)}</h3>
+    <div class="problem">${esc(m.family)} — ${esc(m.goal)}</div>
+    <div style="margin-top:8px">${badges((m.concepts||[]).slice(0,4))}</div>
+  </article>`;
+}
 
 function render(){
   const q=$('#q').value.trim().toLowerCase(); const d=$('#domain').value,t=$('#task').value,l=$('#learning').value;
-
-  // Important: use-case search is STRICT. A source/paper match must not pull loosely-related
-  // use cases into the result set. References are shown as their own result type instead.
   const filtered=cases.filter(x=>(!q||caseText(x).includes(q))&&(!d||x.domain===d)&&(!t||x.task===t)&&(!l||x.learning===l)&&(!interviewOnly||x.interview?.length));
   const sourceHits=q ? sources.filter(s=>sourceText(s).includes(q)) : [];
+  const modelHits=q ? models.filter(m=>modelText(m).includes(q)) : [];
 
-  $('#stats').innerHTML=`<span><b>${filtered.length}</b> / ${cases.length} use cases</span><span>•</span><span><b>${new Set(filtered.map(x=>x.domain)).size}</b> domain</span><span>•</span><span><b>${Object.keys(glossary).length}</b> concepts</span><span>•</span><span><b>${sources.length}</b> verified references</span>${q?`<span>•</span><span><b>${sourceHits.length}</b> direct source matches</span>`:''}`;
+  $('#stats').innerHTML=`<span><b>${filtered.length}</b> / ${cases.length} use cases</span><span>•</span><span><b>${new Set(filtered.map(x=>x.domain)).size}</b> domain</span><span>•</span><span><b>${Object.keys(glossary).length}</b> concepts</span><span>•</span><span><b>${models.length}</b> model recipes</span><span>•</span><span><b>${sources.length}</b> verified references</span>${q?`<span>•</span><span><b>${modelHits.length}</b> model matches</span><span>•</span><span><b>${sourceHits.length}</b> source matches</span>`:''}`;
 
+  const modelHtml=modelHits.map(modelResultCard).join('');
   const sourceHtml=sourceHits.map(sourceResultCard).join('');
   const caseHtml=filtered.map(x=>`<article class="card" data-id="${cases.indexOf(x)}"><h3>${esc(x.title)}</h3><div class="meta">${esc(x.domain)} · ${esc(x.learning)} · ${esc(x.task)}</div><div class="problem">${esc(x.problem)}</div><div style="margin-top:8px">${badges(x.models.slice(0,3))}</div></article>`).join('');
-
-  $('#cards').innerHTML=(sourceHtml+caseHtml) || '<div class="empty">Không có use case hoặc reference phù hợp filter.</div>';
+  $('#cards').innerHTML=(modelHtml+sourceHtml+caseHtml) || '<div class="empty">Không có model, use case hoặc reference phù hợp.</div>';
   document.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>showCase(+c.dataset.id));
   document.querySelectorAll('.source-result-card').forEach(c=>c.onclick=()=>showSource(c.dataset.sourceId));
+  document.querySelectorAll('.model-result-card').forEach(c=>c.onclick=()=>showModel(c.dataset.modelId));
 }
 
 function showCase(i){
@@ -75,9 +85,61 @@ function showCase(i){
     <h3>Pipeline end-to-end</h3><div class="pipeline">${esc(pipe)}</div>
     <h3>Khái niệm đóng góp vào use case này</h3>${x.concepts.map(c=>`<div class="concept"><b>${esc(c)}</b><div class="small">${esc(glossary[c]||'Khái niệm này là một phần của pipeline/model trong use case.')}</div></div>`).join('')}
     <h3>Metrics</h3><div>${badges(x.metrics)}</div>
-    <h3>Canonical / suggested references</h3><div class="small source-note">Tier A dùng để verify method/architecture. Tier B dùng cho framing, design pattern và system thinking. Matching dựa trên task/model/concept của use case.</div>${refs.map(sourceCard).join('')}
+    <h3>Canonical / suggested references</h3><div class="small source-note">Tier A dùng để verify method/architecture. Tier B dùng cho framing, design pattern và system thinking.</div>${refs.map(sourceCard).join('')}
     <h3>Câu interview nên tự trả lời</h3><ol>${x.interview.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>`;
   if(window.innerWidth<1050) $('#detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function disclosureClass(level){
+  const v=String(level).toLowerCase();
+  if(v.includes('high') && !v.includes('medium')) return 'disclosure-high';
+  if(v.includes('medium')) return 'disclosure-medium';
+  return 'disclosure-low';
+}
+function modelField(label,value){ return `<div class="model-field"><b>${esc(label)}</b><div>${esc(value||'Not disclosed')}</div></div>`; }
+function listBlock(title,items,cls=''){
+  if(!items || !items.length) return '';
+  return `<h3>${esc(title)}</h3><ul class="model-list ${cls}">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+}
+function showModel(id){
+  const m=models.find(x=>x.id===id); if(!m) return;
+  const stageText=(m.stages||[]).map((s,i)=>`${i+1}. ${s}`).join('\n↓\n');
+  const links=(m.sources||[]).map(s=>`<a class="source-title" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)} ↗</a>`).join('<br>');
+  $('#detail').innerHTML=`
+    <div class="model-title-row"><div><h2>${esc(m.name)}</h2><div class="meta">${esc(m.family)} · ${esc(m.year)}</div></div><span class="disclosure ${disclosureClass(m.disclosure)}">Disclosure: ${esc(m.disclosure)}</span></div>
+    <div class="model-status">${esc(m.status)}</div>
+    ${modelField('Goal',m.goal)}
+    ${modelField('Architecture',m.architecture)}
+    ${modelField('Training data',m.data)}
+    ${modelField('Tokenizer / representation',m.tokenizer)}
+    ${modelField('Learning paradigm',m.paradigm)}
+    ${modelField('Training objective',m.objective)}
+    ${modelField('Loss',m.loss)}
+    ${modelField('Optimizer',m.optimizer)}
+    ${modelField('LR / schedule',m.schedule)}
+    ${modelField('Batch / context / resolution',m.batch_context)}
+    <h3>Training stages</h3><div class="pipeline model-pipeline">${esc(stageText)}</div>
+    ${modelField('Hardware / compute',m.hardware)}
+    ${modelField('Evaluation',m.evaluation)}
+    ${modelField('Why this model mattered',m.importance)}
+    ${modelField('Limitations',m.limitations)}
+    ${listBlock('✅ Officially disclosed',m.disclosed,'disclosed-list')}
+    ${listBlock('❌ Not fully disclosed',m.not_disclosed,'undisclosed-list')}
+    <h3>Concepts to connect</h3><div>${badges(m.concepts||[])}</div>
+    <h3>Primary / official sources</h3><div class="source-card tier-A">${links}</div>`;
+  if(window.innerWidth<1050) $('#detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function showModelLab(){
+  const q=$('#q').value.trim().toLowerCase();
+  const list=[...models].filter(m=>!q||modelText(m).includes(q)).sort((a,b)=>b.year-a.year || a.name.localeCompare(b.name));
+  $('#cards').innerHTML=list.map(modelResultCard).join('') || '<div class="empty">Không có model phù hợp search.</div>';
+  document.querySelectorAll('.model-result-card').forEach(c=>c.onclick=()=>showModel(c.dataset.modelId));
+  $('#detail').innerHTML=`<h2>🧪 Model Training Lab</h2>
+    <div class="concept"><b>Mục tiêu</b><div>Học cách các model nổi tiếng thực sự được train: data → representation → objective/loss → backprop → optimizer → schedule → post-training → evaluation.</div></div>
+    <div class="source-legend"><div><b>Disclosure High</b> — paper/report công bố phần lớn recipe cốt lõi.</div><div><b>Medium-High</b> — method rõ nhưng data/infrastructure hoặc một số hyperparameter không đủ để replay chính xác.</div></div>
+    <div class="small source-note">CIEL không điền các field chưa công bố bằng suy đoán. Mỗi model có mục <b>Officially disclosed</b> và <b>Not fully disclosed</b>.</div>
+    <div class="stats"><span><b>${list.length}</b> models shown</span><span>•</span><span><b>${models.length}</b> total recipes</span></div>`;
 }
 
 function showSource(id){
@@ -87,8 +149,7 @@ function showSource(id){
     <h3>CIEL dùng nguồn này để làm gì?</h3><div class="concept"><div>${esc(s.role)}</div></div>
     <h3>Áp dụng cho</h3><div>${badges(s.useFor||[])}</div>
     <h3>Tags</h3><div>${badges(s.tags||[])}</div>
-    <h3>Source</h3><div class="source-card tier-${esc(s.tier)}"><a class="source-title" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Mở nguồn gốc ↗</a></div>
-    <div class="small source-note">Nguồn này không tự động kéo các use case chỉ vì có tag gần nhau. Quan hệ model ↔ use case sẽ chỉ được hiển thị khi CIEL có mapping rõ ràng.</div>`;
+    <h3>Source</h3><div class="source-card tier-${esc(s.tier)}"><a class="source-title" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Mở nguồn gốc ↗</a></div>`;
   if(window.innerWidth<1050) $('#detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -106,6 +167,6 @@ function showSources(){
 $('#q').oninput=render; $('#domain').onchange=render; $('#task').onchange=render; $('#learning').onchange=render;
 $('#reset').onclick=()=>{$('#q').value='';$('#domain').value='';$('#task').value='';$('#learning').value='';interviewOnly=false;$('#interviewMode').textContent='🎤 Chỉ use case có câu interview';render();};
 $('#randomBtn').onclick=()=>showCase(Math.floor(Math.random()*cases.length));
-$('#allConcepts').onclick=showGlossary; $('#sourceLibrary').onclick=showSources;
+$('#allConcepts').onclick=showGlossary; $('#sourceLibrary').onclick=showSources; $('#modelLab').onclick=showModelLab;
 $('#interviewMode').onclick=()=>{interviewOnly=!interviewOnly;$('#interviewMode').textContent=interviewOnly?'🎤 Interview filter: ON':'🎤 Chỉ use case có câu interview';render();};
 render(); showCase(0);
