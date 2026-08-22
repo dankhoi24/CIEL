@@ -18,7 +18,7 @@
       <button id="randomBtn">🎲 Random use case</button>
     </div>
     <div class="controls">
-      <input id="q" placeholder="Search: backpropagation, RAG, YOLO, fraud, regression...">
+      <input id="q" placeholder="Search: GPT, BERT, backpropagation, RAG, YOLO, fraud...">
       <select id="domain"><option value="">Tất cả domain</option></select>
       <select id="task"><option value="">Tất cả task</option></select>
       <select id="learning"><option value="">Tất cả learning type</option></select>
@@ -28,6 +28,7 @@
     <div class="modebar">
       <button id="allConcepts">📚 Concept glossary</button>
       <button id="sourceLibrary">🔎 Source library</button>
+      <button id="modelLab">🧪 Model Training Lab</button>
       <button id="interviewMode">🎤 Chỉ use case có câu interview</button>
     </div>
   </div>
@@ -35,11 +36,12 @@
 <main class="layout">
   <section class="cards" id="cards"></section>
   <aside class="detail" id="detail">
-    <div class="empty">Chọn một use case bên trái. Bạn sẽ thấy <b>khái niệm nào được dùng, nằm ở bước nào, và vì sao nó cần thiết</b>.</div>
+    <div class="empty">Chọn một use case, model hoặc reference. Bạn sẽ thấy <b>khái niệm nào được dùng, training như thế nào, và nguồn nào verify thông tin đó</b>.</div>
   </aside>
 </main>
 <script src="data/glossary.js"></script>
 <script src="data/sources.js"></script>
+<script src="data/models.js"></script>
 <script src="data/cases-01.js"></script>
 <script src="data/cases-02.js"></script>
 <script src="data/cases-03.js"></script>
