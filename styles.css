@@ -25,5 +25,15 @@ button{cursor:pointer}button:hover{border-color:var(--accent)}
 .concept b{color:var(--accent)}.small{font-size:13px;color:var(--muted)}
 .empty{color:var(--muted);padding:30px}.topline{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .modebar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.source-card{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0d1527}
+.source-card.tier-A{border-left:4px solid var(--accent2)}
+.source-card.tier-B{border-left:4px solid var(--accent)}
+.source-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px}
+.source-tier{font-size:11px;font-weight:700;border:1px solid var(--line);padding:2px 7px;border-radius:999px}
+.source-title{display:inline-block;color:var(--text);font-weight:700;text-decoration:none;line-height:1.4;margin-bottom:3px}
+.source-title:hover{color:var(--accent);text-decoration:underline}
+.source-role{font-size:13px;line-height:1.5;margin:8px 0;color:#d3dbea}
+.source-note{margin:8px 0 12px;line-height:1.5}
+.source-legend{font-size:13px;line-height:1.55;padding:10px;border:1px solid var(--line);border-radius:10px;background:#0a0f1d;margin-bottom:10px}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.detail{position:relative;top:0;max-height:none}.controls{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.controls{grid-template-columns:1fr}.layout{padding:10px}.wrap{padding:12px}}
