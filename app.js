@@ -16,6 +16,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const badges=arr=>arr.map(x=>`<span class="badge">${esc(x)}</span>`).join('');
 
 function caseText(x){ return JSON.stringify(x).toLowerCase(); }
+function sourceText(s){ return JSON.stringify(s).toLowerCase(); }
 function sourceScore(src,x){
   const hay=caseText(x); let score=0;
   (src.tags||[]).forEach(t=>{ if(hay.includes(String(t).toLowerCase())) score+=3; });
@@ -30,6 +31,15 @@ function sourceScore(src,x){
 function referencesForCase(x){
   return sources.map(s=>({s,score:sourceScore(s,x)})).filter(z=>z.score>1).sort((a,b)=>b.score-a.score || (a.s.tier>b.s.tier?1:-1)).slice(0,7).map(z=>z.s);
 }
+function matchedSourcesForQuery(x,q){
+  if(!q) return [];
+  return sources.filter(s=>sourceText(s).includes(q) && sourceScore(s,x)>1);
+}
+function matchesQuery(x,q){
+  if(!q) return true;
+  if(caseText(x).includes(q)) return true;
+  return matchedSourcesForQuery(x,q).length>0;
+}
 function sourceCard(s){
   return `<div class="source-card tier-${esc(s.tier)}">
     <div class="source-head"><span class="source-tier">Tier ${esc(s.tier)}</span><span class="meta">${esc(s.type)} · ${esc(s.year)}</span></div>
@@ -42,9 +52,13 @@ function sourceCard(s){
 
 function render(){
   const q=$('#q').value.trim().toLowerCase(); const d=$('#domain').value,t=$('#task').value,l=$('#learning').value;
-  const filtered=cases.filter(x=>{ const hay=caseText(x); return (!q||hay.includes(q))&&(!d||x.domain===d)&&(!t||x.task===t)&&(!l||x.learning===l)&&(!interviewOnly||x.interview?.length); });
-  $('#stats').innerHTML=`<span><b>${filtered.length}</b> / ${cases.length} use cases</span><span>•</span><span><b>${new Set(filtered.map(x=>x.domain)).size}</b> domain</span><span>•</span><span><b>${Object.keys(glossary).length}</b> concepts</span><span>•</span><span><b>${sources.length}</b> verified references</span>`;
-  $('#cards').innerHTML=filtered.map(x=>`<article class="card" data-id="${cases.indexOf(x)}"><h3>${esc(x.title)}</h3><div class="meta">${esc(x.domain)} · ${esc(x.learning)} · ${esc(x.task)}</div><div class="problem">${esc(x.problem)}</div><div style="margin-top:8px">${badges(x.models.slice(0,3))}</div></article>`).join('')||'<div class="empty">Không có use case phù hợp filter.</div>';
+  const filtered=cases.filter(x=>matchesQuery(x,q)&&(!d||x.domain===d)&&(!t||x.task===t)&&(!l||x.learning===l)&&(!interviewOnly||x.interview?.length));
+  const directSourceHits=q ? sources.filter(s=>sourceText(s).includes(q)).length : 0;
+  $('#stats').innerHTML=`<span><b>${filtered.length}</b> / ${cases.length} use cases</span><span>•</span><span><b>${new Set(filtered.map(x=>x.domain)).size}</b> domain</span><span>•</span><span><b>${Object.keys(glossary).length}</b> concepts</span><span>•</span><span><b>${sources.length}</b> verified references</span>${q?`<span>•</span><span><b>${directSourceHits}</b> source matches</span>`:''}`;
+  $('#cards').innerHTML=filtered.map(x=>{
+    const via=matchedSourcesForQuery(x,q);
+    return `<article class="card" data-id="${cases.indexOf(x)}"><h3>${esc(x.title)}</h3><div class="meta">${esc(x.domain)} · ${esc(x.learning)} · ${esc(x.task)}</div><div class="problem">${esc(x.problem)}</div><div style="margin-top:8px">${badges(x.models.slice(0,3))}</div>${via.length?`<div class="search-via">Matched via: ${via.slice(0,2).map(s=>esc(s.title)).join(' · ')}</div>`:''}</article>`;
+  }).join('')||'<div class="empty">Không có use case hoặc reference phù hợp filter.</div>';
   document.querySelectorAll('.card').forEach(c=>c.onclick=()=>showCase(+c.dataset.id));
 }
 
@@ -56,7 +70,7 @@ function showCase(i){
     <h3>Pipeline end-to-end</h3><div class="pipeline">${esc(pipe)}</div>
     <h3>Khái niệm đóng góp vào use case này</h3>${x.concepts.map(c=>`<div class="concept"><b>${esc(c)}</b><div class="small">${esc(glossary[c]||'Khái niệm này là một phần của pipeline/model trong use case.')}</div></div>`).join('')}
     <h3>Metrics</h3><div>${badges(x.metrics)}</div>
-    <h3>Canonical / suggested references</h3><div class="small source-note">Tier A dùng để verify method/architecture. Tier B dùng cho framing, design pattern và system thinking. Matching hiện dựa trên task/model/concept của use case.</div>${refs.map(sourceCard).join('')}
+    <h3>Canonical / suggested references</h3><div class="small source-note">Tier A dùng để verify method/architecture. Tier B dùng cho framing, design pattern và system thinking. Matching dựa trên task/model/concept của use case.</div>${refs.map(sourceCard).join('')}
     <h3>Câu interview nên tự trả lời</h3><ol>${x.interview.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>`;
   if(window.innerWidth<1050) $('#detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -66,9 +80,10 @@ function showGlossary(){
   $('#detail').innerHTML=`<h2>Concept Glossary</h2><div class="small">Search/chọn use case để xem concept được áp dụng trong ngữ cảnh thực tế.</div>`+entries.map(([k,v])=>`<div class="concept"><b>${esc(k)}</b><div>${esc(v)}</div></div>`).join('');
 }
 function showSources(){
+  const q=$('#q').value.trim().toLowerCase();
   const tierOrder={A:0,B:1,C:2};
-  const sorted=[...sources].sort((a,b)=>(tierOrder[a.tier]??9)-(tierOrder[b.tier]??9)||b.year-a.year);
-  $('#detail').innerHTML=`<h2>Source Library</h2><div class="source-legend">${Object.entries(sourceLevels).map(([k,v])=>`<div><b>Tier ${esc(k)}</b> — ${esc(v)}</div>`).join('')}</div><div class="small source-note">CIEL lưu metadata, vai trò và link nguồn; không sao chép nội dung sách/paper. Mục tiêu là traceable learning: use case → reasoning → nguồn để verify.</div>${sorted.map(sourceCard).join('')}`;
+  const sorted=[...sources].filter(s=>!q||sourceText(s).includes(q)).sort((a,b)=>(tierOrder[a.tier]??9)-(tierOrder[b.tier]??9)||b.year-a.year);
+  $('#detail').innerHTML=`<h2>Source Library</h2><div class="source-legend">${Object.entries(sourceLevels).map(([k,v])=>`<div><b>Tier ${esc(k)}</b> — ${esc(v)}</div>`).join('')}</div><div class="small source-note">${q?`Đang lọc source theo: <b>${esc(q)}</b>. `:''}CIEL lưu metadata, vai trò và link nguồn; không sao chép nội dung sách/paper.</div>${sorted.length?sorted.map(sourceCard).join(''):'<div class="empty">Không có source phù hợp.</div>'}`;
 }
 
 $('#q').oninput=render; $('#domain').onchange=render; $('#task').onchange=render; $('#learning').onchange=render;
