@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AI Use Case Atlas — học AI qua use case, pipeline, model, metric và interview reasoning.">
+  <title>AI Use Case Atlas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topline">
+      <div>
+        <h1>AI Use Case Atlas</h1>
+        <div class="sub">Use case → task → learning paradigm → model → training → metric → inference → lý do chọn.</div>
+      </div>
+      <button id="randomBtn">🎲 Random use case</button>
+    </div>
+    <div class="controls">
+      <input id="q" placeholder="Search: backpropagation, RAG, YOLO, fraud, regression...">
+      <select id="domain"><option value="">Tất cả domain</option></select>
+      <select id="task"><option value="">Tất cả task</option></select>
+      <select id="learning"><option value="">Tất cả learning type</option></select>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="modebar">
+      <button id="allConcepts">📚 Concept glossary</button>
+      <button id="interviewMode">🎤 Chỉ use case có câu interview</button>
+    </div>
+  </div>
+</header>
+<main class="layout">
+  <section class="cards" id="cards"></section>
+  <aside class="detail" id="detail">
+    <div class="empty">Chọn một use case bên trái. Bạn sẽ thấy <b>khái niệm nào được dùng, nằm ở bước nào, và vì sao nó cần thiết</b>.</div>
+  </aside>
+</main>
+<script src="data/glossary.js"></script>
+<script src="data/cases-01.js"></script>
+<script src="data/cases-02.js"></script>
+<script src="data/cases-03.js"></script>
+<script src="data/cases-04.js"></script>
+<script src="data/cases-05.js"></script>
+<script src="data/cases-06.js"></script>
+<script src="data/cases-07.js"></script>
+<script src="data/cases-08.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
