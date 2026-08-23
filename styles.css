@@ -63,9 +63,14 @@ button.active-view{border-color:var(--accent);background:#15253f;box-shadow:inse
 .read-control.compact input{width:16px;height:16px;background-size:10px 10px}
 .read-control span{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
-.detail-top-actions{display:flex;justify-content:flex-end;margin:2px 0 10px}
+.detail-top-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:2px 0 10px}
+.copy-context-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:#0a1324;color:#dce7f7;font-size:12px;font-weight:700;line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.03);transition:all .16s ease}
+.copy-context-btn:hover{border-color:rgba(125,211,252,.62);background:#12213a;transform:translateY(-1px)}
+.copy-context-btn.copied{border-color:rgba(134,239,172,.55);background:#10291f;color:#b7f7d0}
+.copy-context-btn.copy-error{border-color:rgba(252,165,165,.55);background:#321818;color:#fecaca}
+.copy-icon{font-size:14px;line-height:1}
 .progress-summary{margin-top:14px}
 .inline-back{margin:0 0 12px;padding:7px 10px;font-size:12px;background:#0a0f1d}
 .inline-back:hover{border-color:var(--accent)}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.detail{position:relative;top:0;max-height:none}.controls{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.controls{grid-template-columns:1fr}.layout{padding:10px}.wrap{padding:12px}.model-title-row{display:block}.disclosure{display:inline-block;margin-bottom:8px}.card-top-row{display:flex}.read-control.compact{margin:0}.detail-top-actions{justify-content:flex-end}}
+@media(max-width:620px){.controls{grid-template-columns:1fr}.layout{padding:10px}.wrap{padding:12px}.model-title-row{display:block}.disclosure{display:inline-block;margin-bottom:8px}.card-top-row{display:flex}.read-control.compact{margin:0}.detail-top-actions{justify-content:flex-end;flex-wrap:wrap}.copy-context-btn{padding:7px 9px}}
